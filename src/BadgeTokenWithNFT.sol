@@ -8,13 +8,13 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 /// @title Honey Badger NFT Contract
 /// @notice This contract allows minting, staking, and unstaking of NFTs.
 contract BadgeTokenWithNFT is ERC721URIStorage, Ownable, ReentrancyGuard {
-    uint public nextTokenId = 1;
-    uint public maxSupply = 5555; // Maximum supply of NFTs
-    mapping(address => uint[]) public stakedNFTs; // Tracks staked NFTs per user
+    uint256 public nextTokenId = 1;
+    uint256 public maxSupply = 5555; // Maximum supply of NFTs
+    mapping(address => uint256[]) public stakedNFTs; // Tracks staked NFTs per user
 
-    event NFTMinted(address indexed to, uint indexed tokenId, string tokenURI);
-    event NFTStaked(address indexed user, uint indexed tokenId);
-    event NFTUnstaked(address indexed user, uint indexed tokenId);
+    event NFTMinted(address indexed to, uint256 indexed tokenId, string tokenURI);
+    event NFTStaked(address indexed user, uint256 indexed tokenId);
+    event NFTUnstaked(address indexed user, uint256 indexed tokenId);
 
     /// @notice Constructor to initialize the NFT contract with a name and symbol.
     constructor() ERC721("Honey Badger NFT", "HBN") Ownable(msg.sender) {}
@@ -33,7 +33,7 @@ contract BadgeTokenWithNFT is ERC721URIStorage, Ownable, ReentrancyGuard {
 
     /// @notice Stakes an NFT by transferring it to the contract.
     /// @param tokenId The ID of the NFT to stake.
-    function stakeNFT(uint tokenId) public nonReentrant {
+    function stakeNFT(uint256 tokenId) public nonReentrant {
         require(ownerOf(tokenId) == msg.sender, "You do not own this NFT");
         _transfer(msg.sender, address(this), tokenId);
         stakedNFTs[msg.sender].push(tokenId);
@@ -42,7 +42,7 @@ contract BadgeTokenWithNFT is ERC721URIStorage, Ownable, ReentrancyGuard {
 
     /// @notice Unstakes an NFT by transferring it back to the owner.
     /// @param tokenId The ID of the NFT to unstake.
-    function unstakeNFT(uint tokenId) public nonReentrant {
+    function unstakeNFT(uint256 tokenId) public nonReentrant {
         require(ownerOf(tokenId) == address(this), "NFT is not staked");
         require(stakedNFTs[msg.sender].length > 0, "No staked NFTs found");
         _transfer(address(this), msg.sender, tokenId);
@@ -53,9 +53,9 @@ contract BadgeTokenWithNFT is ERC721URIStorage, Ownable, ReentrancyGuard {
     /// @notice Removes a staked NFT from the user's staked list.
     /// @param user The address of the user.
     /// @param tokenId The ID of the NFT to remove.
-    function removeStakedNFT(address user, uint tokenId) internal {
-        uint[] storage staked = stakedNFTs[user];
-        for (uint i = 0; i < staked.length; i++) {
+    function removeStakedNFT(address user, uint256 tokenId) internal {
+        uint256[] storage staked = stakedNFTs[user];
+        for (uint256 i = 0; i < staked.length; i++) {
             if (staked[i] == tokenId) {
                 staked[i] = staked[staked.length - 1];
                 staked.pop();
@@ -72,18 +72,18 @@ contract BadgeToken is Ownable, ReentrancyGuard {
     string public name = "BadgeToken";
     string public symbol = "BADGE";
     uint8 public decimals = 18;
-    uint public totalSupply = 1000000 * 10 ** uint(decimals); // 1 million BADGE tokens
+    uint256 public totalSupply = 1000000 * 10 ** uint256(decimals); // 1 million BADGE tokens
 
-    mapping(address => uint) public balances;
-    mapping(address => mapping(address => uint)) private _allowances;
-    mapping(address => uint) public stakedAmount;
+    mapping(address => uint256) public balances;
+    mapping(address => mapping(address => uint256)) private _allowances;
+    mapping(address => uint256) public stakedAmount;
 
-    event Transfer(address indexed from, address indexed to, uint value);
-    event Approval(address indexed owner, address indexed spender, uint value);
-    event Staked(address indexed user, uint amount);
-    event Unstaked(address indexed user, uint amount);
-    event RewardDistributed(address indexed user, uint amount);
-    event TotalStaked(uint totalStaked);
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+    event Staked(address indexed user, uint256 amount);
+    event Unstaked(address indexed user, uint256 amount);
+    event RewardDistributed(address indexed user, uint256 amount);
+    event TotalStaked(uint256 totalStaked);
 
     /// @notice Constructor to initialize the ERC-20 contract and mint the total supply to the owner.
     constructor() Ownable(msg.sender) {
@@ -94,7 +94,7 @@ contract BadgeToken is Ownable, ReentrancyGuard {
     /// @notice Transfers tokens from the sender to another address.
     /// @param to The address to transfer tokens to.
     /// @param amount The amount of tokens to transfer.
-    function transfer(address to, uint amount) public nonReentrant returns (bool) {
+    function transfer(address to, uint256 amount) public nonReentrant returns (bool) {
         require(balances[msg.sender] >= amount, "Insufficient balance");
         balances[msg.sender] -= amount;
         balances[to] += amount;
@@ -104,7 +104,7 @@ contract BadgeToken is Ownable, ReentrancyGuard {
 
     /// @notice Stakes tokens by locking them in the contract.
     /// @param amount The amount of tokens to stake.
-    function stake(uint amount) public nonReentrant {
+    function stake(uint256 amount) public nonReentrant {
         require(balances[msg.sender] >= amount, "Insufficient balance");
         balances[msg.sender] -= amount;
         stakedAmount[msg.sender] += amount;
@@ -114,7 +114,7 @@ contract BadgeToken is Ownable, ReentrancyGuard {
 
     /// @notice Unstakes tokens by releasing them from the contract.
     /// @param amount The amount of tokens to unstake.
-    function unstake(uint amount) public nonReentrant {
+    function unstake(uint256 amount) public nonReentrant {
         require(stakedAmount[msg.sender] >= amount, "Insufficient staked balance");
         stakedAmount[msg.sender] -= amount;
         balances[msg.sender] += amount;
@@ -125,7 +125,7 @@ contract BadgeToken is Ownable, ReentrancyGuard {
     /// @notice Distributes rewards to a user from the owner's balance.
     /// @param user The address of the user to reward.
     /// @param amount The amount of tokens to distribute as rewards.
-    function distributeRewards(address user, uint amount) public onlyOwner nonReentrant {
+    function distributeRewards(address user, uint256 amount) public onlyOwner nonReentrant {
         require(user != address(0), "Invalid user address");
         require(amount > 0, "Invalid reward amount");
         require(balances[owner()] >= amount, "Insufficient balance for rewards");
@@ -137,7 +137,7 @@ contract BadgeToken is Ownable, ReentrancyGuard {
     /// @notice Approves another address to spend tokens on behalf of the sender.
     /// @param spender The address allowed to spend tokens.
     /// @param amount The amount of tokens to approve.
-    function approve(address spender, uint amount) public returns (bool) {
+    function approve(address spender, uint256 amount) public returns (bool) {
         require(spender != address(0), "Invalid address");
         _allowances[msg.sender][spender] = 0; // Reset allowance to prevent double-spending
         _allowances[msg.sender][spender] = amount;
@@ -149,7 +149,7 @@ contract BadgeToken is Ownable, ReentrancyGuard {
     /// @param from The address to transfer tokens from.
     /// @param to The address to transfer tokens to.
     /// @param amount The amount of tokens to transfer.
-    function transferFrom(address from, address to, uint amount) public nonReentrant returns (bool) {
+    function transferFrom(address from, address to, uint256 amount) public nonReentrant returns (bool) {
         require(balances[from] >= amount, "Insufficient balance");
         require(_allowances[from][msg.sender] >= amount, "Not approved to spend");
         balances[from] -= amount;
